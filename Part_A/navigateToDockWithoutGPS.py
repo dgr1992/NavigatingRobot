@@ -42,7 +42,7 @@ def main():
         robot.setMotorSpeeds(motorSpeed[0][0], motorSpeed[1][0])
 
         time.sleep(0.05)
-        #TODO check is driven is sum or not
+        #TODO prüfen ob die Werte der distanz, der summe der disanz oder etwas anderem entsprechen siehe skriptum merz s20
         driven = robot.getWheelEncodingValues()
         currentPose = calcCurrentPos(currentPose, robot._wheelDistance, driven[1], driven[2])
 
