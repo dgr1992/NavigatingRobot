@@ -5,7 +5,8 @@ import numpy as np
 import math
 
 def main():
-    robot = EPuckVRep('ePuck', port=19999, synchronous=False)
+    robot = EPuckVRep('ePuck',port=19999, synchronous=False)
+    robot.enablePose()
 
     #xStart = 0.5
     #yStart = 0.5
@@ -18,9 +19,9 @@ def main():
     goalPose = np.matrix([[xGoal],[yGoal],[zetaGoal]])
 
     #Control parameters
-    kRoh = 1
-    kAlpha = 1
-    kBeta = 1
+    kRoh = 80
+    kAlpha = 100
+    kBeta = -100
     r = 0.0425  # in meters
     l = 0.0541  # in meters
 
@@ -38,23 +39,29 @@ def main():
         
         currentPose = robot._getPose()
 
-        motorSpeed = K * polarTransf(currentPose,goalPose) 
+        polar = polarTransf(currentPose, goalPose)
+        
+        print(polar)
+
+        motorSpeed = K * polar
+
+        print(motorSpeed)
+        print('\n-----------------')
 
         robot.setMotorSpeeds(motorSpeed[0][0], motorSpeed[1][0])
+
 
         time.sleep(0.05)
 
     robot.disconnect()
 
-def polarTransf(self, currentPose, goalPose):
-    deltaX = goalPose[0][0] - currentPose[0][0]
-    deltaY = goalPose[1][0] - currentPose[1][0]
+def polarTransf(current, goal):
+    deltaX = goal[0][0] - goal[0][0]
+    deltaY = goal[1][0] - goal[1][0]
     roh = math.sqrt(deltaX**2 + deltaY**2)
-    alpha = - currentPose[2][0] + math.atan2(deltaY,deltaX)
-    beta = - currentPose[2][0] - alpha
-    return np.matrix([[roh],[alpha],[beta]]) 
-
-
+    alpha = - current[2] + math.atan2(deltaY,deltaX)
+    beta = - current[2] - alpha
+    return np.matrix([[roh],[alpha],[beta]])
 
 if __name__ == '__main__':
     main()

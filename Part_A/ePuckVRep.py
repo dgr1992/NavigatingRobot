@@ -31,7 +31,7 @@ except:
 
 class EPuckVRep(EPuck):
 
-    def __init__(self, name, host_url='127.0.0.1', port=20000, synchronous=False):
+    def __init__(self, name, host_url='127.0.0.1', port=19999, synchronous=False):
         """
         constructor for a robot that connects to the VRep Simulator on port
         :param

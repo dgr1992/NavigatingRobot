@@ -48,14 +48,14 @@ def main():
 
     robot.disconnect()
 
-def calcCurrentPos(self, oldPos, wheelBase, drivenSr, drivenSl):
+def calcCurrentPos(oldPos, wheelBase, drivenSr, drivenSl):
     c00 = (drivenSr + drivenSl)/2*math.cos(oldPos[2][0] + ((drivenSr-drivenSl)/(2*wheelBase)))
     c10 = (drivenSr + drivenSl)/2*math.sin(oldPos[2][0] + ((drivenSr-drivenSl)/(2*wheelBase)))
     c20 = (drivenSr-drivenSl)/wheelBase
     temp = np.matrix([[c00], [c10], [c20]])
     return oldPos + temp
 
-def polarTransf(self, currentPose, goalPose):
+def polarTransf(currentPose, goalPose):
     deltaX = goalPose[0][0] - currentPose[0][0]
     deltaY = goalPose[1][0] - currentPose[1][0]
     roh = math.sqrt(deltaX ** 2 + deltaY ** 2)
