@@ -42,6 +42,8 @@ def main():
     zetaStart = temp[2]
     currentPose = np.matrix([[xStart],[yStart], [zetaStart]])
 
+    oldencval = robot.getWheelEncodingValues()
+
     # main sense-act cycle
     while robot.isConnected():
         pol = polarTransf(currentPose, goalPose)
@@ -53,12 +55,27 @@ def main():
         time.sleep(0.05)
         #TODO prüfen ob die Werte der distanz, der summe der disanz oder etwas anderem entsprechen siehe skriptum merz s20
 
-        driven = robot.getWheelEncodingValues()
-        # print driven
-        currentPose = calcCurrentPos(currentPose, robot._wheelDistance, driven[0], driven[1])
-        print currentPose
-        print '----------------------'
+        radius =robot._wheelDiameter/2
+
+        dsl, dsr, oldencval = calcDriven(robot, oldencval, radius)
+        print dsl
+        print dsr
+
+        currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
+
+        # print currentPose
+        # print '----------------------'
+
     robot.disconnect()
+
+
+def calcDriven(robot, oldencval, rad):
+    encval = robot.getWheelEncodingValues()
+    # TODO FIX distances mod2pi
+    leftdist = (oldencval[0] - encval[0]) * rad
+    rightdist = (oldencval[1] - encval[1]) * rad
+    oldencval = encval
+    return leftdist, rightdist, oldencval
 
 def calcCurrentPos(oldPos, wheelBase, drivenSr, drivenSl):
     c00 = (drivenSr + drivenSl)/2*math.cos(oldPos[2] + ((drivenSr-drivenSl)/(2*wheelBase)))
