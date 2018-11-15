@@ -20,10 +20,11 @@ def main():
 
     #Control parameters
     kRoh = 0.5
-    kAlpha = 5
-    kBeta = -3.5
-    r = 0.0425  # in meters
-    l = 0.0541  # in meters
+    kAlpha = 6.5
+    kBeta = -4
+
+    r = robot._wheelDiameter/2
+    l = robot._wheelDistance
 
     #Define the control matrix
     c00 = kRoh/r
@@ -34,14 +35,31 @@ def main():
     c12 = -(kBeta*l)/r
     K = np.matrix([[c00,c01,c02],[c10,c11,c12]])
 
+    reachedTarget = False
+
     # main sense-act cycle
     while robot.isConnected():
         
         currentPose = robot._getPose()
-        
-        polar = polarTransf(currentPose, goalPose)
 
-        motorSpeed = K * polar
+        deltaX = math.fabs(currentPose[0] - goalPose[0])
+        deltaY = math.fabs(currentPose[1] - goalPose[1])
+        deltaTheta = math.fabs(currentPose[2] - goalPose[2])
+
+        print currentPose
+        print deltaX
+        print deltaY
+        print deltaTheta
+        print reachedTarget
+        print '----------------------'
+
+        if reachedTarget or (deltaX < 0.003  and deltaY < 0.002 and deltaTheta < 0.1) : 
+            reachedTarget = True
+            motorSpeed = np.matrix([[0],[0]])
+        else:
+            polar = polarTransf(currentPose, goalPose)
+
+            motorSpeed = K * polar
 
         robot.setMotorSpeeds(motorSpeed[1][0], motorSpeed[0][0])
 
