@@ -19,9 +19,9 @@ def main():
     goalPose = np.matrix([[xGoal],[yGoal],[zetaGoal]])
 
     #Control parameters
-    kRoh = 80
-    kAlpha = 100
-    kBeta = -100
+    kRoh = .05
+    kAlpha = 1
+    kBeta = -0.1
     r = 0.0425  # in meters
     l = 0.0541  # in meters
 
@@ -32,15 +32,15 @@ def main():
     c10 = kRoh/r
     c11 = -(kAlpha*l)/r
     c12 = -(kBeta*l)/r
-    K = np.matrix([[c00,c01,c02],[c10,c11,12]])
+    K = np.matrix([[c00,c01,c02],[c10,c11,c12]])
 
     # main sense-act cycle
     while robot.isConnected():
         
         currentPose = robot._getPose()
-
-        polar = polarTransf(currentPose, goalPose)
         
+        polar = polarTransf(currentPose, goalPose)
+
         print(polar)
 
         motorSpeed = K * polar
@@ -56,8 +56,8 @@ def main():
     robot.disconnect()
 
 def polarTransf(current, goal):
-    deltaX = goal[0][0] - goal[0][0]
-    deltaY = goal[1][0] - goal[1][0]
+    deltaX = goal[0][0] - current[0]
+    deltaY = goal[1][0] - current[1]
     roh = math.sqrt(deltaX**2 + deltaY**2)
     alpha = - current[2] + math.atan2(deltaY,deltaX)
     beta = - current[2] - alpha
