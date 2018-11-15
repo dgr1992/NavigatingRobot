@@ -74,6 +74,8 @@ def calcDriven(robot, oldencval, rad):
     # TODO FIX distances mod2pi
     leftdist = (oldencval[0] - encval[0]) * rad
     rightdist = (oldencval[1] - encval[1]) * rad
+    if(leftdist < 0):
+
     oldencval = encval
     return leftdist, rightdist, oldencval
 
