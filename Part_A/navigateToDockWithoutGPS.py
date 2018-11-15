@@ -35,23 +35,49 @@ def main():
     c12 = -(kBeta*l)/r
     K = np.matrix([[c00,c01,c02],[c10,c11,c12]])
 
-    currentPose = robot._getPose()
+
+    temp = robot._getPose()
+    xStart = temp[0]
+    yStart = temp[1]
+    zetaStart = temp[2]
+    currentPose = np.matrix([[xStart],[yStart], [zetaStart]])
+
+    oldencval = robot.getWheelEncodingValues()
 
     # main sense-act cycle
     while robot.isConnected():
         pol = polarTransf(currentPose, goalPose)
-        print pol
+
         motorSpeed = K * pol
 
         robot.setMotorSpeeds(motorSpeed[0][0], motorSpeed[1][0])
 
         time.sleep(0.05)
         #TODO prüfen ob die Werte der distanz, der summe der disanz oder etwas anderem entsprechen siehe skriptum merz s20
-        driven = robot.getWheelEncodingValues()
 
-        currentPose = calcCurrentPos(currentPose, robot._wheelDistance, driven[0], driven[1])
+        radius =robot._wheelDiameter/2
+
+        dsl, dsr, oldencval = calcDriven(robot, oldencval, radius)
+        print dsl
+        print dsr
+
+        currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
+
+        # print currentPose
+        # print '----------------------'
 
     robot.disconnect()
+
+
+def calcDriven(robot, oldencval, rad):
+    encval = robot.getWheelEncodingValues()
+    # TODO FIX distances mod2pi
+    leftdist = (oldencval[0] - encval[0]) * rad
+    rightdist = (oldencval[1] - encval[1]) * rad
+    if(leftdist < 0):
+
+    oldencval = encval
+    return leftdist, rightdist, oldencval
 
 def calcCurrentPos(oldPos, wheelBase, drivenSr, drivenSl):
     c00 = (drivenSr + drivenSl)/2*math.cos(oldPos[2] + ((drivenSr-drivenSl)/(2*wheelBase)))
@@ -60,13 +86,13 @@ def calcCurrentPos(oldPos, wheelBase, drivenSr, drivenSl):
     temp = np.matrix([[c00], [c10], [c20]])
     return oldPos + temp
 
-def polarTransf(current, goal):
-    deltaX = goal[0][0] - current[0]
-    deltaY = goal[1][0] - current[1]
-    temp = (deltaX[0][0])**2 + (deltaY[0][0])**2
+def polarTransf(currentPos, goalPos):
+    deltaX = goalPos.item(0) - currentPos.item(0)
+    deltaY = goalPos.item(1) - currentPos.item(1)
+    temp = deltaX**2 + deltaY**2
     roh = math.sqrt(temp)
-    alpha = - current[2] + math.atan2(deltaY,deltaX)
-    beta = - current[2] - alpha
+    alpha = - currentPos[2] + math.atan2(deltaY,deltaX)
+    beta = - currentPos[2] - alpha
     return np.matrix([[roh],[alpha],[beta]])
 
 
