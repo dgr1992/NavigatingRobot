@@ -9,6 +9,7 @@ def main():
     robot = EPuckVRep('ePuck', port=19999, synchronous=False)
     robot.enablePose()
     robot.enableWheelEncoding()
+    
     # xStart = 0.5
     # yStart = 0.5
     # zetaStart = 0
@@ -19,12 +20,13 @@ def main():
     zetaGoal = 0
     goalPose = np.matrix([[xGoal], [yGoal], [zetaGoal]])
 
-    # Control parameters
+    #Control parameters
     kRoh = 0.5
-    kAlpha = 5
-    kBeta = -3.5
-    r = 0.0425  # in meters
-    l = 0.0541  # in meters
+    kAlpha = 6.5
+    kBeta = -4
+
+    r = robot._wheelDiameter/2
+    l = robot._wheelDistance
 
     # Define the control matrix
     c00 = kRoh/r
@@ -56,10 +58,12 @@ def main():
         #TODO prüfen ob die Werte der distanz, der summe der disanz oder etwas anderem entsprechen siehe skriptum merz s20
 
         radius =robot._wheelDiameter/2
-
-        dsl, dsr, oldencval = calcDriven(robot, oldencval, radius)
+        encval = robot.getWheelEncodingValues()
+        print encval
+        dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
         print dsl
         print dsr
+        print'--------------------------'
 
         currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
 
@@ -69,20 +73,23 @@ def main():
     robot.disconnect()
 
 
-def calcDriven(robot, oldencval, rad):
-    encval = robot.getWheelEncodingValues()
+def calcDriven(encval, oldencval, radius):
     # TODO FIX distances mod2pi
-    leftdist = (oldencval[0] - encval[0]) * rad
-    rightdist = (oldencval[1] - encval[1]) * rad
-    if(leftdist < 0):
+    oldLeft = (oldencval[0] + 2*math.pi)%(2*math.pi)
+    newLeft = (encval[0] + 2*math.pi)%(2*math.pi)
 
-    oldencval = encval
-    return leftdist, rightdist, oldencval
+    oldRight = (oldencval[1] + 2*math.pi)%(2*math.pi)
+    newRight = (encval[1] + 2*math.pi)%(2*math.pi)
+
+    leftdist = math.fabs(oldLeft - newLeft) * radius
+    rightdist = math.fabs(oldRight - newRight) * radius
+
+    return leftdist, rightdist, encval
 
 def calcCurrentPos(oldPos, wheelBase, drivenSr, drivenSl):
-    c00 = (drivenSr + drivenSl)/2*math.cos(oldPos[2] + ((drivenSr-drivenSl)/(2*wheelBase)))
-    c10 = (drivenSr + drivenSl)/2*math.sin(oldPos[2] + ((drivenSr-drivenSl)/(2*wheelBase)))
-    c20 = (drivenSr-drivenSl)/wheelBase
+    c00 = (drivenSr + drivenSl)/2*math.cos(oldPos[2] + ((drivenSr - drivenSl)/(2*wheelBase)))
+    c10 = (drivenSr + drivenSl)/2*math.sin(oldPos[2] + ((drivenSr - drivenSl)/(2*wheelBase)))
+    c20 = (drivenSr - drivenSl)/wheelBase
     temp = np.matrix([[c00], [c10], [c20]])
     return oldPos + temp
 
