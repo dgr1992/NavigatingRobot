@@ -19,9 +19,9 @@ def main():
     goalPose = np.matrix([[xGoal],[yGoal],[zetaGoal]])
 
     #Control parameters
-    kRoh = .05
-    kAlpha = 1
-    kBeta = -0.1
+    kRoh = 0.5
+    kAlpha = 5
+    kBeta = -3.5
     r = 0.0425  # in meters
     l = 0.0541  # in meters
 
@@ -41,15 +41,9 @@ def main():
         
         polar = polarTransf(currentPose, goalPose)
 
-        print(polar)
-
         motorSpeed = K * polar
 
-        print(motorSpeed)
-        print('\n-----------------')
-
-        robot.setMotorSpeeds(motorSpeed[0][0], motorSpeed[1][0])
-
+        robot.setMotorSpeeds(motorSpeed[1][0], motorSpeed[0][0])
 
         time.sleep(0.05)
 
