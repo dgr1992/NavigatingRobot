@@ -37,6 +37,7 @@ def main():
     c12 = -(kBeta*l)/r
     K = np.matrix([[c00,c01,c02],[c10,c11,c12]])
 
+    reachedTarget = False
 
     temp = robot._getPose()
     xStart = temp[0]
@@ -48,33 +49,36 @@ def main():
 
     # main sense-act cycle
     while robot.isConnected():
-        pol = polarTransf(currentPose, goalPose)
-
-        motorSpeed = K * pol
-
-        robot.setMotorSpeeds(motorSpeed[0][0], motorSpeed[1][0])
-
-        time.sleep(0.05)
         #TODO prüfen ob die Werte der distanz, der summe der disanz oder etwas anderem entsprechen siehe skriptum merz s20
 
+        #Calculate the driven distance of the left and right wheel
         radius =robot._wheelDiameter/2
         encval = robot.getWheelEncodingValues()
-        print encval
         dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
-        print dsl
-        print dsr
-        print'--------------------------'
-
+        #Calculate the pose
         currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
+        
+        #Get distance to goal
+        deltaX = math.fabs(currentPose[0] - goalPose[0])
+        deltaY = math.fabs(currentPose[1] - goalPose[1])
+        deltaTheta = math.fabs(currentPose[2] - goalPose[2])
 
-        # print currentPose
-        # print '----------------------'
+        if reachedTarget or (deltaX < 0.003  and deltaY < 0.002 and deltaTheta < 0.1) : 
+            reachedTarget = True
+            motorSpeed = np.matrix([[0],[0]])
+        else:
+            #Calculate the motor speeds so the robot moves torwards the goal
+            polar = polarTransf(currentPose, goalPose)
+            motorSpeed = K * polar
+
+        robot.setMotorSpeeds(motorSpeed[1][0], motorSpeed[0][0])
+
+        time.sleep(0.05)
 
     robot.disconnect()
 
 
 def calcDriven(encval, oldencval, radius):
-    # TODO FIX distances mod2pi
     oldLeft = (oldencval[0] + 2*math.pi)%(2*math.pi)
     newLeft = (encval[0] + 2*math.pi)%(2*math.pi)
 
