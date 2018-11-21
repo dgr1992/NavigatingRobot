@@ -37,7 +37,6 @@ def main():
     c11 = -(kAlpha*l)/r
     c12 = -(kBeta*l)/r
     K = np.matrix([[c00,c01,c02],[c10,c11,c12]])
-    print K
 
     reachedTarget = False
 
@@ -46,19 +45,14 @@ def main():
     yStart = temp[1]
     zetaStart = temp[2]
     currentPose = np.matrix([[xStart],[yStart], [zetaStart]])
+    print currentPose
 
     oldencval = robot.getWheelEncodingValues()
+    #print oldencval
 
     # main sense-act cycle
     while robot.isConnected():
-        #Calculate the driven distance of the left and right wheel
-        radius =robot._wheelDiameter/2
-        encval = robot.getWheelEncodingValues()
-        dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
-        #Calculate the pose
-        currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
-        print (currentPose)
-        #Get distance to goal
+         #Get distance to goal
         deltaX = math.fabs(currentPose[0] - goalPose[0])
         deltaY = math.fabs(currentPose[1] - goalPose[1])
         deltaTheta = math.fabs(currentPose[2] - goalPose[2])
@@ -72,8 +66,18 @@ def main():
             motorSpeed = K * polar
 
         robot.setMotorSpeeds(motorSpeed[1][0], motorSpeed[0][0])
-
+        print '----- motor speed ----'
+        print motorSpeed
         time.sleep(sleepTime)
+
+        #Calculate the driven distance of the left and right wheel
+        radius =robot._wheelDiameter/2
+        encval = robot.getWheelEncodingValues()
+        dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
+        #Calculate the pose
+        currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
+        #print (robot.getPose())
+        #print (currentPose)
 
     robot.disconnect()
 
@@ -85,20 +89,25 @@ def calcDriven(encval, oldencval, radius):
     return leftdist, rightdist, encval
 
 def calcCurrentPos(oldPos, wheelBase, drivenSr, drivenSl):
-    c00 = (drivenSr + drivenSl)/2*math.cos(oldPos[2] + ((drivenSr - drivenSl)/(2*wheelBase)))
-    c10 = (drivenSr + drivenSl)/2*math.sin(oldPos[2] + ((drivenSr - drivenSl)/(2*wheelBase)))
-    c20 = (drivenSr - drivenSl)/wheelBase
+    deltaZeta = (drivenSr - drivenSl) / wheelBase
+    deltaS = (drivenSr + drivenSl)/2
+    c00 = deltaS*math.cos(oldPos[2] + deltaZeta/2)
+    c10 = deltaS*math.sin(oldPos[2] + deltaZeta/2)
+    c20 = deltaZeta
     temp = np.matrix([[c00], [c10], [c20]])
+    print '-----temp------'
+    print temp
     newPosition = oldPos + temp
+    print '------new Pos-----'
+    print newPosition
     return newPosition
 
-def polarTransf(currentPos, goalPos):
-    deltaX = goalPos.item(0) - currentPos.item(0)
-    deltaY = goalPos.item(1) - currentPos.item(1)
-    temp = deltaX**2 + deltaY**2
-    roh = math.sqrt(temp)
-    alpha = - currentPos[2] + math.atan2(deltaY,deltaX)
-    beta = - currentPos[2] - alpha
+def polarTransf(current, goal):
+    deltaX = goal[0][0] - current[0]
+    deltaY = goal[1][0] - current[1]
+    roh = math.sqrt(deltaX**2 + deltaY**2)
+    alpha = - current[2] + math.atan2(deltaY,deltaX)
+    beta = - current[2] - alpha
     return np.matrix([[roh],[alpha],[beta]])
 
 
