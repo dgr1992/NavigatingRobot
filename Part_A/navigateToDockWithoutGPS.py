@@ -87,8 +87,8 @@ def main():
 
 
 def calcDriven(encval, oldencval, radius):
-    leftdist = (encval[0] + 2*math.pi - oldencval[0]) % (2*math.pi) * 2*math.pi*radius
-    rightdist = (encval[1] + 2*math.pi - oldencval[1]) % (2*math.pi) * 2*math.pi*radius
+    leftdist = (encval[0] + 2*math.pi - oldencval[0]) % (2*math.pi) * radius
+    rightdist = (encval[1] + 2*math.pi - oldencval[1]) % (2*math.pi) * radius
 
     return leftdist, rightdist, encval
 
