@@ -23,8 +23,8 @@ def main():
     #Control parameters
     kRoh = 0.6
     kAlpha = 6.5
-    kBeta = -4
-    sleepTime = 1.5
+    kBeta = -4   
+    sleepTime = 0.05
 
     r = robot._wheelDiameter/2
     l = robot._wheelDistance
@@ -49,7 +49,6 @@ def main():
 
     oldencval = robot.getWheelEncodingValues()
 
-
     # main sense-act cycle
     while robot.isConnected():
         #Calculate the driven distance of the left and right wheel
@@ -58,7 +57,7 @@ def main():
         dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
         #Calculate the pose
         currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
-        print (currentPose, robot._getPose())
+        print (currentPose)
         #Get distance to goal
         deltaX = math.fabs(currentPose[0] - goalPose[0])
         deltaY = math.fabs(currentPose[1] - goalPose[1])
@@ -71,7 +70,6 @@ def main():
             #Calculate the motor speeds so the robot moves torwards the goal
             polar = polarTransf(currentPose, goalPose)
             motorSpeed = K * polar
-        # print (motorSpeed[1][0], motorSpeed[0][0])
 
         robot.setMotorSpeeds(motorSpeed[1][0], motorSpeed[0][0])
 
@@ -81,14 +79,8 @@ def main():
 
 
 def calcDriven(encval, oldencval, radius):
-    oldLeft = (oldencval[0] + 2*math.pi)%(2*math.pi)
-    newLeft = (encval[0] + 2*math.pi)%(2*math.pi)
-
-    oldRight = (oldencval[1] + 2*math.pi)%(2*math.pi)
-    newRight = (encval[1] + 2*math.pi)%(2*math.pi)
-
-    leftdist = math.fabs(oldLeft - newLeft) * radius
-    rightdist = math.fabs(oldRight - newRight) * radius
+    leftdist = (encval[0] + 2*math.pi - oldencval[0]) % (2*math.pi)
+    rightdist = (encval[1] + 2*math.pi - oldencval[1]) % (2*math.pi)
 
     return leftdist, rightdist, encval
 
