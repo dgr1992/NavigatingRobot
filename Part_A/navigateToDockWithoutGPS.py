@@ -24,6 +24,10 @@ def main():
     kRoh = 0.6
     kAlpha = 6.5
     kBeta = -4   
+    
+    #kRoh = 0.03
+    #kAlpha = 0.2
+    #kBeta = -0.1   
     sleepTime = 0.05
 
     r = robot._wheelDiameter/2
@@ -48,7 +52,6 @@ def main():
     print currentPose
 
     oldencval = robot.getWheelEncodingValues()
-    #print oldencval
 
     # main sense-act cycle
     while robot.isConnected():
@@ -76,8 +79,9 @@ def main():
         dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
         #Calculate the pose
         currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
-        #print (robot.getPose())
-        #print (currentPose)
+        print '--- getPose()---'
+        print (robot.getPose())
+        print ''
 
     robot.disconnect()
 
