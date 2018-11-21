@@ -8,11 +8,6 @@ def main():
     robot = EPuckVRep('ePuck',port=19999, synchronous=False)
     robot.enablePose()
 
-    #xStart = 0.5
-    #yStart = 0.5
-    #zetaStart = 0
-    #poseStart = np.matrix([[xStart],[yStart],[zetaStart]])
-
     xGoal = 1.225
     yGoal = 0.0
     zetaGoal = 0

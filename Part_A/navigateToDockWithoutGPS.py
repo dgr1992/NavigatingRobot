@@ -9,11 +9,6 @@ def main():
     robot = EPuckVRep('ePuck', port=19999, synchronous=False)
     robot.enablePose()
     robot.enableWheelEncoding()
-    
-    # xStart = 0.5
-    # yStart = 0.5
-    # zetaStart = 0
-    # poseStart = np.matrix([[xStart],[yStart],[zetaStart]])
 
     xGoal = 1.225
     yGoal = 0.0
@@ -24,10 +19,7 @@ def main():
     kRoh = 0.6
     kAlpha = 6.5
     kBeta = -4   
-    
-    #kRoh = 0.03
-    #kAlpha = 0.2
-    #kBeta = -0.1   
+
     sleepTime = 0.05
 
     r = robot._wheelDiameter/2
@@ -44,12 +36,12 @@ def main():
 
     reachedTarget = False
 
+    # get start Position and convert to numpy-matrix
     temp = robot._getPose()
     xStart = temp[0]
     yStart = temp[1]
     zetaStart = temp[2]
     currentPose = np.matrix([[xStart],[yStart], [zetaStart]])
-    print currentPose
 
     oldencval = robot.getWheelEncodingValues()
 
@@ -69,8 +61,6 @@ def main():
             motorSpeed = K * polar
 
         robot.setMotorSpeeds(motorSpeed[1][0], motorSpeed[0][0])
-        print '----- motor speed ----'
-        print motorSpeed
         time.sleep(sleepTime)
 
         #Calculate the driven distance of the left and right wheel
@@ -79,10 +69,6 @@ def main():
         dsl, dsr, oldencval = calcDriven(encval, oldencval, radius)
         #Calculate the pose
         currentPose = calcCurrentPos(currentPose, robot._wheelDistance, dsr , dsl)
-        print '--- getPose()---'
-        print (robot.getPose())
-        print ''
-
     robot.disconnect()
 
 
