@@ -3,9 +3,8 @@ import numpy as np
 import math
 
 class Docking(Behaviour):
-    reachedTarget = False
 
-    def __init__(self, robot, goalPoseMatrix, controlParameterMatrix):
+    def __init__(self, wheelRadius, wheelDistance, resolutionX, resolutionY):
         """
         :param
             robot: robot object
@@ -13,82 +12,75 @@ class Docking(Behaviour):
             controlParameterMatrix: [[kRoh][kAlpha][kBeta]]
         """
         super(Docking, self).__init__("Docking")
-        self.robot = robot
-        self.wheelRadius = robot._wheelDiameter/2
-        self.wheelDistance = robot._wheelDistance
-        self.K =self.createControlMatrix(controlParameterMatrix[0][0],controlParameterMatrix[1][0],controlParameterMatrix[2][0])
-        self.oldencval = robot.getWheelEncodingValues()
-        self.currentPose = self.getInitialPose()
-        self.goalPose = goalPoseMatrix
+        #self.K =self.createControlMatrix(controlParameterMatrix[0][0],controlParameterMatrix[1][0],controlParameterMatrix[2][0],wheelRadius, wheelDistance)
+        self.reachedTarget = False
+        self.wheelRadius = wheelRadius
+        self.wheelDistance = wheelDistance  
+        self._resolX = resolutionX
+        self._resolY = resolutionY 
+        self._xCenter = [-1]
 
-    def applicable(self, image, isNewImage):
+    def applicable(self, image, isNewImage, currentPose, goalPose, kRoh, kAlpha, kBeta):
         """
         :param see method in Behaviour class
         :return:  boolean
             behaviour is applicable in current situation
         """
+        minBlobWidth = 25
+        xStart = -1
+        for y in range(self._resolY):
+            blobwidth = 0
+            for x in range(self._resolX):
+                pixel = image.getpixel((x, y))
+                if pixel == (0, 0, 0):  # black pixel: a box!
+                    blobwidth += 1
+                    if blobwidth == 1:
+                        xStart = x
+                else:
+                    #print blobwidth
+                    if blobwidth >= minBlobWidth:
+                        return True
+                    elif blobwidth > 0:
+                        blobwidth = 0
+            if blobwidth >= minBlobWidth:
+                #print blobwidth
+                self._xCenter[0] = xStart + blobwidth / 2
+                return True
+
         return False
 
-
-    def calculateMotorValues(self, image, isNewImage):
+    def calculateMotorValues(self, image, isNewImage, currentPose, goalPose, kRoh, kAlpha, kBeta):
         """
         :param see method in Behaviour class
         :return:  (float,float)
             left and right motor velocity
         """
-        self.currentPose = self.updatePose(self.currentPose)
         #Get distance to goal
-        deltaX = math.fabs(self.currentPose[0][0] - self.goalPose[0][0])
-        deltaY = math.fabs(self.currentPose[1][0] - self.goalPose[1][0])
-        deltaTheta = math.fabs(self.currentPose[2][0] - self.goalPose[2][0])
+        deltaX = math.fabs(currentPose[0][0] - goalPose[0][0])
+        deltaY = math.fabs(currentPose[1][0] - goalPose[1][0])
+        deltaTheta = math.fabs(currentPose[2][0] - goalPose[2][0])
+
+        K = self.createControlMatrix(kRoh,kAlpha,kBeta,self.wheelRadius, self.wheelDistance)
 
         if self.reachedTarget or (deltaX < 0.003  and deltaY < 0.002 and deltaTheta < 0.1) : 
-            reachedTarget = True
+            self.reachedTarget = True
             motorSpeed = np.matrix([[0],[0]])
         else:
             #Calculate the motor speeds so the robot moves torwards the goal
-            polar = self.polarTransf(self.currentPose, self.goalPose)
-            motorSpeed = self.K * polar
+            polar = self.polarTransf(currentPose, goalPose)
+            motorSpeed = K * polar
         return motorSpeed[1][0], motorSpeed[0][0]
 
-    def updatePose(self,currentPose):
-        #Calculate the driven distance of the left and right wheel
-        encval = self.robot.getWheelEncodingValues()
-        dsl, dsr, self.oldencval = self.calcDriven(encval, self.oldencval, self.wheelRadius)
-        #Calculate the pose
-        pose = self.calcCurrentPos(currentPose, self.wheelDistance, dsr , dsl)
-        return pose
-
-    def createControlMatrix(self,kRoh,kAlpha,kBeta):
+    def createControlMatrix(self,kRoh,kAlpha,kBeta, wheelRadius, wheelDistance):
         # Define the control matrix
-        c00 = kRoh/self.wheelRadius
-        c01 = (kAlpha*self.wheelDistance)/self.wheelRadius
-        c02 = (kBeta*self.wheelDistance)/self.wheelRadius
-        c10 = kRoh/self.wheelRadius
-        c11 = -(kAlpha*self.wheelDistance)/self.wheelRadius
-        c12 = -(kBeta*self.wheelDistance)/self.wheelRadius
+        c00 = kRoh/wheelRadius
+        c01 = (kAlpha*wheelDistance)/wheelRadius
+        c02 = (kBeta*wheelDistance)/wheelRadius
+        c10 = kRoh/wheelRadius
+        c11 = -(kAlpha*wheelDistance)/wheelRadius
+        c12 = -(kBeta*wheelDistance)/wheelRadius
         K = np.matrix([[c00,c01,c02],[c10,c11,c12]])
         return K
-
-    def calcDriven(self,encval, oldencval, radius):
-        leftdist = (encval[0] + 2*math.pi - oldencval[0]) % (2*math.pi) * radius
-        rightdist = (encval[1] + 2*math.pi - oldencval[1]) % (2*math.pi) * radius
-
-        return leftdist, rightdist, encval
-
-    def calcCurrentPos(self,oldPos, wheelBase, drivenSr, drivenSl):
-        deltaZeta = (drivenSr - drivenSl) / wheelBase
-        deltaS = (drivenSr + drivenSl)/2
-        c00 = deltaS*math.cos(oldPos[2] + deltaZeta/2)
-        c10 = deltaS*math.sin(oldPos[2] + deltaZeta/2)
-        c20 = deltaZeta
-        temp = np.matrix([[c00], [c10], [c20]])
-        print '-----temp------'
-        print temp
-        newPosition = oldPos + temp
-        print '------new Pos-----'
-        print newPosition
-        return newPosition
 
     def polarTransf(self,current, goal):
         deltaX = goal[0][0] - current[0]
@@ -97,11 +89,3 @@ class Docking(Behaviour):
         alpha = - current[2] + math.atan2(deltaY,deltaX)
         beta = - current[2] - alpha
         return np.matrix([[roh],[alpha],[beta]])
-
-    def getInitialPose(self):
-        # get start Position and convert to numpy-matrix
-        temp = self.robot._getPose()
-        xStart = temp[0]
-        yStart = temp[1]
-        zetaStart = temp[2]
-        return np.matrix([[xStart],[yStart], [zetaStart]])

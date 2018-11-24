@@ -19,7 +19,7 @@ class Behaviour:
         return self.__state
 
     @abstractmethod
-    def applicable(self, image, isNewImage):
+    def applicable(self, image, isNewImage, currentPose, goalPose, kRoh, kAlpha, kBeta):
         """
         :param distances: numpy float array
             distances measured by proximity sensors; in meters
@@ -32,7 +32,7 @@ class Behaviour:
         pass
 
     @abstractmethod
-    def calculateMotorValues(self, image, isNewImage):
+    def calculateMotorValues(self, image, isNewImage,  currentPose, goalPose, kRoh, kAlpha, kBeta):
         """
         :param distances: numpy float array
             distances measured by proximity sensors; in meters

@@ -20,7 +20,6 @@ class ApproachDock(Behaviour):
                     the center of the image: result of the function
 
         """
-        #ToDo check this
         minBlobWidth = 5
         xStart = -1
         for y in range(self._resolY):
@@ -45,7 +44,7 @@ class ApproachDock(Behaviour):
 
         return False
 
-    def applicable(self, image, isNewImage):
+    def applicable(self, image, isNewImage, currentPose, goalPose, kRoh, kAlpha, kBeta):
         """
         :param see method in Behaviour class
         :return:  boolean
@@ -54,8 +53,7 @@ class ApproachDock(Behaviour):
 
         return self.detectDock(image)
 
-
-    def calculateMotorValues(self, image, isNewImage):
+    def calculateMotorValues(self, image, isNewImage, currentPose, goalPose, kRoh, kAlpha, kBeta):
         """
         :param see method in Behaviour class
         :return:  (float,float)
