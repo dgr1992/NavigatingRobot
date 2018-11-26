@@ -70,9 +70,9 @@ def main():
     #kRoh = 0.6
     #kAlpha = 6.5
     #kBeta = -4 
-    kRoh = 0.6
-    kAlpha = 6.5
-    kBeta = -4
+    kRoh = 0.4
+    kAlpha = 1.2
+    kBeta = -0.02
     #controlParameterMatrix = np.matrix([[kRoh][kAlpha][kBeta]])
 
     #subsumption behaviour list, order defines priorities!
@@ -105,6 +105,8 @@ def main():
         encval = robot.getWheelEncodingValues()
         print encval
         currentPose, oldencval = updatePose(currentPose, oldencval, wheelRadius, wheelDistance, encval)
+        print'----- real Pose -----'
+        print robot.getPose()
 
     robot.disconnect()
 

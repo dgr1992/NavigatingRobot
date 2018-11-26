@@ -26,7 +26,7 @@ class Docking(Behaviour):
         :return:  boolean
             behaviour is applicable in current situation
         """
-        minBlobWidth = 25
+        minBlobWidth = 30
         xStart = -1
         for y in range(self._resolY):
             blobwidth = 0
