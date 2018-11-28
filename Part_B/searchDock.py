@@ -20,5 +20,4 @@ class SearchDock(Behaviour):
         :return:  (float,float)
             left and right motor velocity
         """
-        return 1,0.25     # turn clockwise, since box detection in image searches from left to right,
-                            # and we want to detect the same box again, not a second one appearing now
+        return 1, 0.25 #do not turn on possition to keep odometrie error as small as possible

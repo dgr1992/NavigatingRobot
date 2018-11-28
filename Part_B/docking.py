@@ -12,7 +12,6 @@ class Docking(Behaviour):
             controlParameterMatrix: [[kRoh][kAlpha][kBeta]]
         """
         super(Docking, self).__init__("Docking")
-        #self.K =self.createControlMatrix(controlParameterMatrix[0][0],controlParameterMatrix[1][0],controlParameterMatrix[2][0],wheelRadius, wheelDistance)
         self.reachedTarget = False
         self.wheelRadius = wheelRadius
         self.wheelDistance = wheelDistance  
@@ -37,13 +36,11 @@ class Docking(Behaviour):
                     if blobwidth == 1:
                         xStart = x
                 else:
-                    #print blobwidth
                     if blobwidth >= minBlobWidth:
                         return True
                     elif blobwidth > 0:
                         blobwidth = 0
             if blobwidth >= minBlobWidth:
-                #print blobwidth
                 self._xCenter[0] = xStart + blobwidth / 2
                 return True
 

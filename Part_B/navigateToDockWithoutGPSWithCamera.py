@@ -73,7 +73,6 @@ def main():
     kRoh = 0.4
     kAlpha = 1.2
     kBeta = -0.02
-    #controlParameterMatrix = np.matrix([[kRoh][kAlpha][kBeta]])
 
     #subsumption behaviour list, order defines priorities!
     behaviours = [Docking(wheelRadius,wheelDistance, resolX, resolY), ApproachDock(resolX,resolY), SearchDock()] 

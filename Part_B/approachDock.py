@@ -33,13 +33,11 @@ class ApproachDock(Behaviour):
                 else:
                     if blobwidth >= minBlobWidth:
                         self._xCenter[0] = xStart + blobwidth / 2
-                        # print('blob detected at: ', xStart, y, ' with center at: ', xCenter[0])
                         return True
                     elif blobwidth > 0:
                         blobwidth = 0
             if blobwidth >= minBlobWidth:
                 self._xCenter[0] = xStart + blobwidth / 2
-                # print('blob detected at: ', xStart, y, ' with center at: ', xCenter[0])
                 return True
 
         return False
